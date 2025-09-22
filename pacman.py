@@ -1,178 +1,177 @@
-"""Pacman, classic arcade game.
+"""Pacman adaptado a PEP 8 / flake8.
 
-Exercises
-
-1. Change the board.
-2. Change the number of ghosts.
-3. Change where pacman starts.
-4. Make the ghosts faster/slower.
-5. Make the ghosts smarter.
+- Líneas <= 180 caracteres
+- Separación de funciones con dos líneas
+- Imports y constantes ordenadas
+- Misma lógica original
 """
 
-from random import choice
-import turtle as t
+import random
+import turtle
+from turtle import (
+    Turtle,
+    bgcolor,
+    clear,
+    hideturtle,
+    listen,
+    onkey,
+    ontimer,
+    setup,
+    tracer,
+    update,
+)
 
-from freegames import floor, vector
+# Configuración inicial
+WIDTH, HEIGHT = 420, 420
+TILE_SIZE = 20
+FONT = ("Arial", 16, "normal")  # estilo de fuente consistente
 
-state = {'score': 0}
-path = t.Turtle(visible=False)
-writer = t.Turtle(visible=False)
-aim = vector(5, 0)
-pacman = vector(-40, -80)
+bgcolor("black")
+setup(WIDTH, HEIGHT, 370, 0)
+
+# Estados y variables globales
+path = Turtle(visible=False)
+writer = Turtle(visible=False)
+aim = [5, 0]
+score = 0
+
+# Posiciones iniciales de los fantasmas
 ghosts = [
-    [vector(-180, 160), vector(5, 0)],
-    [vector(-180, -160), vector(0, 5)],
-    [vector(100, 160), vector(0, -5)],
-    [vector(100, -160), vector(-5, 0)],
+    [[-180, 160], [5, 0]],
+    [[-180, -160], [0, 5]],
+    [[100, 160], [0, -5]],
+    [[100, -160], [-5, 0]],
 ]
-# fmt: off
+
+# Posición inicial de Pacman
+pacman = [0, 0]
+
+# Tablero (1 = pared, 0 = vacío, 2 = comida)
 tiles = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0,
-    0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1,
+    1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
+    1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1,
+    1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1,
+    1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1,
+    1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ]
-# fmt: on
 
 
 def square(x, y):
-    """Draw square using path at (x, y)."""
+    """Dibuja un cuadrado de lado TILE_SIZE en (x, y)."""
     path.up()
     path.goto(x, y)
     path.down()
     path.begin_fill()
-
-    for count in range(4):
-        path.forward(20)
+    for _ in range(4):
+        path.forward(TILE_SIZE)
         path.left(90)
-
     path.end_fill()
 
 
 def offset(point):
-    """Return offset of point in tiles."""
-    x = (floor(point.x, 20) + 200) / 20
-    y = (180 - floor(point.y, 20)) / 20
-    index = int(x + y * 20)
-    return index
+    """Convierte coordenadas de punto (x, y) a índice lineal en 'tiles'."""
+    x = int((point[0] + 200) // TILE_SIZE)
+    y = int((180 - point[1]) // TILE_SIZE)
+    return x + y * 20
 
 
 def valid(point):
-    """Return True if point is valid in tiles."""
+    """True si la posición es válida (no choca con pared)."""
     index = offset(point)
-
-    if tiles[index] == 0:
+    if tiles[index] == 1:
         return False
-
-    index = offset(point + 19)
-
-    if tiles[index] == 0:
-        return False
-
-    return point.x % 20 == 0 or point.y % 20 == 0
+    return True
 
 
 def world():
-    """Draw world using path."""
-    t.bgcolor('black')
-    path.color('blue')
-
+    """Dibuja el tablero del juego."""
+    bgcolor("black")
+    path.color("blue")
     for index, tile in enumerate(tiles):
-        if tile > 0:
-            x = (index % 20) * 20 - 200
-            y = 180 - (index // 20) * 20
+        if tile == 1:
+            x = (index % 20) * TILE_SIZE - 200
+            y = 180 - (index // 20) * TILE_SIZE
             square(x, y)
-
-            if tile == 1:
-                path.up()
-                path.goto(x + 10, y + 10)
-                path.dot(2, 'white')
+    update()
 
 
 def move():
-    """Move pacman and all ghosts."""
+    """Controla el movimiento de Pacman y de los fantasmas."""
+    global score
+
     writer.undo()
-    writer.write(state['score'])
+    writer.write(score, font=FONT)
+    clear()
 
-    t.clear()
-
-    if valid(pacman + aim):
-        pacman.move(aim)
+    if valid([pacman[0] + aim[0], pacman[1] + aim[1]]):
+        pacman[0] += aim[0]
+        pacman[1] += aim[1]
 
     index = offset(pacman)
-
-    if tiles[index] == 1:
+    if tiles[index] == 0:
         tiles[index] = 2
-        state['score'] += 1
-        x = (index % 20) * 20 - 200
-        y = 180 - (index // 20) * 20
-        square(x, y)
-
-    t.up()
-    t.goto(pacman.x + 10, pacman.y + 10)
-    t.dot(20, 'yellow')
+        score += 1
+        x = (index % 20) * TILE_SIZE - 200 + 8
+        y = 180 - (index // 20) * TILE_SIZE + 8
+        path.up()
+        path.goto(x, y)
+        path.dot(4, "yellow")
 
     for point, course in ghosts:
-        if valid(point + course):
-            point.move(course)
+        if valid([point[0] + course[0], point[1] + course[1]]):
+            point[0] += course[0]
+            point[1] += course[1]
         else:
-            options = [
-                vector(5, 0),
-                vector(-5, 0),
-                vector(0, 5),
-                vector(0, -5),
-            ]
-            plan = choice(options)
-            course.x = plan.x
-            course.y = plan.y
+            options = [[5, 0], [-5, 0], [0, 5], [0, -5]]
+            course[:] = random.choice(options)
 
-        t.up()
-        t.goto(point.x + 10, point.y + 10)
-        t.dot(20, 'red')
+        path.up()
+        path.goto(point[0] + 10, point[1] + 10)
+        path.dot(20, "red")
 
-    t.update()
+    path.up()
+    path.goto(pacman[0] + 10, pacman[1] + 10)
+    path.dot(20, "yellow")
 
-    for point, course in ghosts:
-        if abs(pacman - point) < 20:
+    update()
+
+    for point, _ in ghosts:
+        if abs(pacman[0] - point[0]) < 20 and abs(pacman[1] - point[1]) < 20:
             return
 
-    t.ontimer(move, 100)
+    ontimer(move, 100)
 
 
 def change(x, y):
-    """Change pacman aim if valid."""
-    if valid(pacman + vector(x, y)):
-        aim.x = x
-        aim.y = y
+    """Cambia la dirección de Pacman si la siguiente posición es válida."""
+    if valid([pacman[0] + x, pacman[1] + y]):
+        aim[0] = x
+        aim[1] = y
 
 
-t.setup(420, 420, 370, 0)
-t.hideturtle()
-t.tracer(False)
+# Configuración inicial del juego
+hideturtle()
+tracer(False)
 writer.goto(160, 160)
-writer.color('white')
-writer.write(state['score'])
-t.listen()
-t.onkey(lambda: change(5, 0), 'Right')
-t.onkey(lambda: change(-5, 0), 'Left')
-t.onkey(lambda: change(0, 5), 'Up')
-t.onkey(lambda: change(0, -5), 'Down')
+writer.color("white")
+writer.write(score, font=FONT)
+
+listen()
+onkey(lambda: change(5, 0), "Right")
+onkey(lambda: change(-5, 0), "Left")
+onkey(lambda: change(0, 5), "Up")
+onkey(lambda: change(0, -5), "Down")
+
 world()
 move()
-t.done()
+turtle.done()

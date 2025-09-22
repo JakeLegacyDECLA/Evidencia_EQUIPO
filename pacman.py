@@ -14,6 +14,9 @@ import turtle as t
 
 from freegames import floor, vector
 
+# --- Config: hacer a los fantasmas (y el juego) más rápidos bajando el timer ---
+TIMER_MS = 70  # antes 100 ms. Menor valor = actualizaciones más frecuentes
+
 state = {'score': 0}
 path = t.Turtle(visible=False)
 writer = t.Turtle(visible=False)
@@ -25,6 +28,7 @@ ghosts = [
     [vector(100, 160), vector(0, -5)],
     [vector(100, -160), vector(-5, 0)],
 ]
+
 # fmt: off
 tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -132,12 +136,7 @@ def move():
         if valid(point + course):
             point.move(course)
         else:
-            options = [
-                vector(5, 0),
-                vector(-5, 0),
-                vector(0, 5),
-                vector(0, -5),
-            ]
+            options = [vector(5, 0), vector(-5, 0), vector(0, 5), vector(0, -5)]
             plan = choice(options)
             course.x = plan.x
             course.y = plan.y
@@ -152,7 +151,8 @@ def move():
         if abs(pacman - point) < 20:
             return
 
-    t.ontimer(move, 100)
+    # Hacer el juego más rápido: bajar el intervalo del timer
+    t.ontimer(move, TIMER_MS)
 
 
 def change(x, y):

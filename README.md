@@ -1,5 +1,4 @@
 # Evidencia_EQUIPO
-# Pacman – Evidencia
 
 ## Integrantes
 •⁠  ⁠César Aguilar Kuri (tablero)
@@ -25,5 +24,4 @@
 ---
 
 ## Cómo correr
-```bash
-python3 pacman.py
+Se usa WSL (Ubuntu) para poder correr este programa
